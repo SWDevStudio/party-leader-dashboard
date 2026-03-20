@@ -112,7 +112,7 @@
                       <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span class="text-xs text-base-content/40">{{ className(stats.player.classId) }}</span>
                         <span
-                          v-for="role in classRoles(stats.player.classId)"
+                          v-for="role in getPlayerRoles(stats.player)"
                           :key="role"
                           class="badge badge-xs"
                           :class="roleBadgeClass(role)"
@@ -123,10 +123,7 @@
                     <!-- mini stats -->
                     <div class="text-right text-xs text-base-content/40 shrink-0 min-w-16">
                       <div class="tabular-nums">{{ stats.attended }}/{{ stats.totalSieges }}</div>
-                      <div
-                        v-if="stats.consecutiveMisses > 0"
-                        class="text-warning font-medium"
-                      >{{ stats.consecutiveMisses }}× пропуск</div>
+                      <div v-if="stats.consecutiveMisses > 0" class="text-warning font-medium">{{ stats.consecutiveMisses }}× пропуск</div>
                       <div v-else class="text-success">активен</div>
                     </div>
 
@@ -178,7 +175,7 @@
                       <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span class="text-xs text-base-content/40">{{ className(stats.player.classId) }}</span>
                         <span
-                          v-for="role in classRoles(stats.player.classId)"
+                          v-for="role in getPlayerRoles(stats.player)"
                           :key="role"
                           class="badge badge-xs"
                           :class="roleBadgeClass(role)"
@@ -207,7 +204,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { store, addSiege, setSiegeAttendance } from '@/store'
+import { store, addSiege, setSiegeAttendance, getPlayerRoles } from '@/store'
 import type { Role } from '@/types'
 import { computeAllStats, sortByPriority, type PlayerStats } from '@/utils/rotation'
 import { roleBadgeClass } from '@/utils/roles'
@@ -270,10 +267,6 @@ function saveAsSiege() {
 
 function className(classId: string): string {
   return store.classes.find(c => c.id === classId)?.name ?? classId
-}
-
-function classRoles(classId: string): Role[] {
-  return store.classes.find(c => c.id === classId)?.roles ?? []
 }
 
 function fmtDateShort(d: string): string {

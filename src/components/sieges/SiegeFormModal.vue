@@ -6,41 +6,53 @@
       </h3>
 
       <form @submit.prevent="submit" class="space-y-4">
-        <label class="form-control w-full">
+        <div class="form-control w-full">
           <div class="label"><span class="label-text">Дата осады</span></div>
           <input
-            v-model="form.date"
+            v-model="date"
+            v-bind="dateAttrs"
             type="date"
             class="input input-bordered w-full"
-            required
+            :class="{ 'input-error': errors.date }"
+            data-testid="siege-modal-date"
           />
-        </label>
+          <div v-if="errors.date" class="label">
+            <span class="label-text-alt text-error">{{ errors.date }}</span>
+          </div>
+        </div>
 
-        <label class="form-control w-full">
+        <div class="form-control w-full">
           <div class="label"><span class="label-text">Кол-во слотов</span></div>
           <input
-            v-model.number="form.totalSlots"
+            v-model="totalSlots"
+            v-bind="totalSlotsAttrs"
             type="number"
             min="1"
             max="500"
             class="input input-bordered w-full"
-            required
+            :class="{ 'input-error': errors.totalSlots }"
+            data-testid="siege-modal-slots"
           />
-        </label>
+          <div v-if="errors.totalSlots" class="label">
+            <span class="label-text-alt text-error">{{ errors.totalSlots }}</span>
+          </div>
+        </div>
 
-        <label class="form-control w-full">
+        <div class="form-control w-full">
           <div class="label"><span class="label-text">Заметки (необязательно)</span></div>
           <textarea
-            v-model="form.notes"
+            v-model="notes"
+            v-bind="notesAttrs"
             class="textarea textarea-bordered w-full"
             rows="2"
             maxlength="256"
+            data-testid="siege-modal-notes"
           />
-        </label>
+        </div>
 
         <div class="modal-action pt-2">
-          <button type="button" class="btn btn-ghost" @click="close">Отмена</button>
-          <button type="submit" class="btn btn-primary">
+          <button type="button" class="btn btn-ghost" data-testid="siege-modal-cancel" @click="close">Отмена</button>
+          <button type="submit" class="btn btn-primary" data-testid="siege-modal-submit">
             {{ isEdit ? 'Сохранить' : 'Добавить' }}
           </button>
         </div>
@@ -55,37 +67,53 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { addSiege, updateSiege } from '@/store'
 import type { SiegeEvent } from '@/types'
 
 const props = defineProps<{ siege?: SiegeEvent }>()
 const emit  = defineEmits<{ close: [] }>()
 
+const siegeSchema = toTypedSchema(z.object({
+  date:       z.string().min(1, 'Укажите дату'),
+  totalSlots: z.coerce.number().int().min(1, 'Минимум 1').max(500, 'Максимум 500'),
+  notes:      z.string().max(256).default(''),
+}))
+
+const { handleSubmit, defineField, resetForm, errors } = useForm({
+  validationSchema: siegeSchema,
+})
+
+const [date, dateAttrs]               = defineField('date')
+const [totalSlots, totalSlotsAttrs]   = defineField('totalSlots')
+const [notes, notesAttrs]             = defineField('notes')
+
 const dialogEl = ref<HTMLDialogElement>()
 const isEdit   = computed(() => !!props.siege)
-
-const today = new Date().toISOString().split('T')[0]
-
-const form = ref({ date: today, totalSlots: 40, notes: '' })
+const today    = new Date().toISOString().split('T')[0]
 
 watch(
   () => props.siege,
   (s) => {
-    form.value = s
-      ? { date: s.date, totalSlots: s.totalSlots, notes: s.notes ?? '' }
-      : { date: today, totalSlots: 40, notes: '' }
+    resetForm({
+      values: s
+        ? { date: s.date, totalSlots: s.totalSlots, notes: s.notes ?? '' }
+        : { date: today, totalSlots: 40, notes: '' },
+    })
   },
   { immediate: true },
 )
 
-function open() { dialogEl.value?.showModal() }
+function open()  { dialogEl.value?.showModal() }
 function close() { dialogEl.value?.close(); emit('close') }
 
-function submit() {
+const submit = handleSubmit((values) => {
   const payload = {
-    date:       form.value.date,
-    totalSlots: form.value.totalSlots,
-    notes:      form.value.notes.trim() || undefined,
+    date:       values.date,
+    totalSlots: values.totalSlots,
+    notes:      values.notes?.trim() || undefined,
   }
   if (isEdit.value && props.siege) {
     updateSiege(props.siege.id, payload)
@@ -93,7 +121,9 @@ function submit() {
     addSiege(payload)
   }
   close()
-}
+})
 
 defineExpose({ open })
 </script>
+
+<style scoped></style>

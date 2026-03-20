@@ -7,62 +7,92 @@
 
       <form @submit.prevent="submit" class="space-y-4">
         <!-- Game surname -->
-        <label class="form-control w-full">
+        <div class="form-control w-full">
           <div class="label"><span class="label-text">Игровая фамилия</span></div>
           <input
-            v-model.trim="form.gameSurname"
+            v-model="gameSurname"
+            v-bind="gameSurnameAttrs"
             type="text"
             class="input input-bordered w-full"
+            :class="{ 'input-error': errors.gameSurname }"
             placeholder="Ivanov"
-            required
             maxlength="64"
+            data-testid="player-modal-surname"
           />
-        </label>
+          <div v-if="errors.gameSurname" class="label">
+            <span class="label-text-alt text-error">{{ errors.gameSurname }}</span>
+          </div>
+        </div>
 
         <!-- Discord nick -->
-        <label class="form-control w-full">
+        <div class="form-control w-full">
           <div class="label"><span class="label-text">Ник в Discord</span></div>
           <input
-            v-model.trim="form.discordNick"
+            v-model="discordNick"
+            v-bind="discordNickAttrs"
             type="text"
             class="input input-bordered w-full"
+            :class="{ 'input-error': errors.discordNick }"
             placeholder="ivanov"
-            required
             maxlength="64"
+            data-testid="player-modal-discord"
           />
-        </label>
+          <div v-if="errors.discordNick" class="label">
+            <span class="label-text-alt text-error">{{ errors.discordNick }}</span>
+          </div>
+        </div>
 
         <!-- Class -->
-        <label class="form-control w-full">
+        <div class="form-control w-full">
           <div class="label"><span class="label-text">Класс</span></div>
-          <select v-model="form.classId" class="select select-bordered w-full" required>
+          <select
+            v-model="classId"
+            v-bind="classIdAttrs"
+            class="select select-bordered w-full"
+            :class="{ 'select-error': errors.classId }"
+            data-testid="player-modal-class"
+          >
             <option value="" disabled>Выберите класс...</option>
             <option v-for="cls in store.classes" :key="cls.id" :value="cls.id">
               {{ cls.name }}
             </option>
           </select>
-        </label>
+          <div v-if="errors.classId" class="label">
+            <span class="label-text-alt text-error">{{ errors.classId }}</span>
+          </div>
+        </div>
 
-        <!-- Role preview -->
-        <div v-if="selectedRoles.length" class="flex flex-wrap gap-1 -mt-1">
-          <span
-            v-for="role in selectedRoles"
-            :key="role"
-            class="badge badge-sm"
-            :class="roleBadgeClass(role)"
-          >{{ role }}</span>
+        <!-- Roles -->
+        <div class="form-control w-full">
+          <div class="label">
+            <span class="label-text">Роли</span>
+            <button
+              v-if="hasRoleOverride"
+              type="button"
+              class="label-text-alt btn btn-xs btn-ghost"
+              data-testid="player-modal-roles-reset"
+              @click="resetRoles"
+            >↺ Сбросить к классу</button>
+          </div>
+          <UiSelect
+            :model-value="effectiveRoles"
+            :options="roleOptions"
+            mode="multiple"
+            placeholder="Роли не выбраны"
+            data-testid="player-modal-roles"
+            @update:model-value="handleRolesChange"
+          />
         </div>
 
         <div class="modal-action pt-2">
-          <button type="button" class="btn btn-ghost" @click="close">Отмена</button>
-          <button type="submit" class="btn btn-primary">
+          <button type="button" class="btn btn-ghost" data-testid="player-modal-cancel" @click="close">Отмена</button>
+          <button type="submit" class="btn btn-primary" data-testid="player-modal-submit">
             {{ isEdit ? 'Сохранить' : 'Добавить' }}
           </button>
         </div>
       </form>
     </div>
 
-    <!-- Click outside to close -->
     <form method="dialog" class="modal-backdrop" @submit.prevent="close">
       <button>close</button>
     </form>
@@ -71,31 +101,70 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { store, addPlayer, updatePlayer } from '@/store'
-import type { Player } from '@/types'
+import { ALL_ROLES } from '@/types'
+import type { Player, Role, SelectOption } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
+import UiSelect from '@/components/ui/UiSelect.vue'
 
 const props = defineProps<{ player?: Player }>()
 const emit = defineEmits<{ close: [] }>()
 
+const playerSchema = toTypedSchema(z.object({
+  gameSurname: z.string().min(1, 'Обязательное поле').max(64),
+  discordNick:  z.string().min(1, 'Обязательное поле').max(64),
+  classId:      z.string().min(1, 'Выберите класс'),
+  roles:        z.array(z.string()).default([]),
+}))
+
+const { handleSubmit, defineField, resetForm, errors } = useForm({
+  validationSchema: playerSchema,
+})
+
+const [gameSurname, gameSurnameAttrs] = defineField('gameSurname')
+const [discordNick, discordNickAttrs]  = defineField('discordNick')
+const [classId, classIdAttrs]          = defineField('classId')
+const [roles]                          = defineField('roles')
+
 const dialogEl = ref<HTMLDialogElement>()
 const isEdit = computed(() => !!props.player)
-
-const form = ref({ gameSurname: '', discordNick: '', classId: '' })
 
 watch(
   () => props.player,
   (p) => {
-    form.value = p
-      ? { gameSurname: p.gameSurname, discordNick: p.discordNick, classId: p.classId }
-      : { gameSurname: '', discordNick: '', classId: '' }
+    resetForm({
+      values: p
+        ? { gameSurname: p.gameSurname, discordNick: p.discordNick, classId: p.classId, roles: p.roles ?? [] }
+        : { gameSurname: '', discordNick: '', classId: '', roles: [] },
+    })
   },
   { immediate: true },
 )
 
-const selectedRoles = computed(
-  () => store.classes.find(c => c.id === form.value.classId)?.roles ?? [],
+const classDefaultRoles = computed<Role[]>(
+  () => store.classes.find(c => c.id === classId.value)?.roles ?? [],
 )
+
+const hasRoleOverride = computed(() => (roles.value?.length ?? 0) > 0)
+
+const effectiveRoles = computed<string[]>(
+  () => hasRoleOverride.value ? (roles.value as string[]) : classDefaultRoles.value,
+)
+
+const roleOptions = computed<SelectOption[]>(() =>
+  ALL_ROLES.map(r => ({ value: r, label: r, class: roleBadgeClass(r) })),
+)
+
+function handleRolesChange(value: string | string[] | null) {
+  roles.value = Array.isArray(value) ? value : []
+}
+
+function resetRoles() {
+  roles.value = []
+}
 
 function open() {
   dialogEl.value?.showModal()
@@ -106,22 +175,27 @@ function close() {
   emit('close')
 }
 
-function submit() {
+const submit = handleSubmit((values) => {
+  const rolesOverride = (values.roles?.length ?? 0) > 0 ? values.roles as Role[] : undefined
   if (isEdit.value && props.player) {
     updatePlayer(props.player.id, {
-      gameSurname: form.value.gameSurname,
-      discordNick:  form.value.discordNick,
-      classId:      form.value.classId,
+      gameSurname: values.gameSurname,
+      discordNick:  values.discordNick,
+      classId:      values.classId,
+      roles:        rolesOverride,
     })
   } else {
     addPlayer({
-      gameSurname: form.value.gameSurname,
-      discordNick:  form.value.discordNick,
-      classId:      form.value.classId,
+      gameSurname: values.gameSurname,
+      discordNick:  values.discordNick,
+      classId:      values.classId,
+      roles:        rolesOverride,
     })
   }
   close()
-}
+})
 
 defineExpose({ open })
 </script>
+
+<style scoped></style>

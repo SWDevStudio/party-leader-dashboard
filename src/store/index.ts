@@ -36,6 +36,11 @@ watchEffect(() => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
 })
 
+export function getPlayerRoles(player: Player): Role[] {
+  if (player.roles && player.roles.length > 0) return player.roles
+  return store.classes.find(c => c.id === player.classId)?.roles ?? []
+}
+
 // ─── Player actions ──────────────────────────────────────────────────────────
 
 export function addPlayer(data: Omit<Player, 'id' | 'createdAt'>): void {

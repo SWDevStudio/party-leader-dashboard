@@ -44,7 +44,7 @@
             <td>
               <div class="flex flex-wrap gap-1">
                 <span
-                  v-for="role in classRoles(player.classId)"
+                  v-for="role in getPlayerRoles(player)"
                   :key="role"
                   class="badge badge-xs"
                   :class="roleBadgeClass(role)"
@@ -94,8 +94,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { store, deletePlayer } from '@/store'
-import type { Player, Role } from '@/types'
+import { store, deletePlayer, getPlayerRoles } from '@/store'
+import type { Player } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
 import PlayerModal from '@/components/players/PlayerModal.vue'
 
@@ -130,10 +130,6 @@ function confirmDelete() {
 
 function className(classId: string): string {
   return store.classes.find(c => c.id === classId)?.name ?? classId
-}
-
-function classRoles(classId: string): Role[] {
-  return store.classes.find(c => c.id === classId)?.roles ?? []
 }
 
 function fmtDate(iso: string): string {

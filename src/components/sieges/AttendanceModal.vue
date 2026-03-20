@@ -55,7 +55,7 @@
             </div>
             <div class="flex gap-1 mt-0.5 flex-wrap">
               <span
-                v-for="role in classRoles(player.classId)"
+                v-for="role in getPlayerRoles(player)"
                 :key="role"
                 class="badge badge-xs"
                 :class="roleBadgeClass(role)"
@@ -105,8 +105,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import { store, setSiegeAttendance } from '@/store'
-import type { SiegeEvent, Role } from '@/types'
+import { store, setSiegeAttendance, getPlayerRoles } from '@/store'
+import type { SiegeEvent } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
 
 type AttendState = 'attended' | 'absent' | 'benched'
@@ -150,10 +150,6 @@ function setAll(state: AttendState) {
 
 function countByState(state: AttendState): number {
   return store.players.filter(p => states[p.id] === state).length
-}
-
-function classRoles(classId: string): Role[] {
-  return store.classes.find(c => c.id === classId)?.roles ?? []
 }
 
 function fmtDate(d: string) {

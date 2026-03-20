@@ -26,6 +26,7 @@ export interface Player {
   gameSurname: string
   discordNick: string
   classId: string
+  roles?: Role[]  // если заданы — переопределяют роли класса
   createdAt: string // ISO datetime
 }
 
@@ -42,6 +43,13 @@ export interface SiegeEvent {
   attendees: string[]
   absentees: string[]  // пропустили сами — не влияют на ротацию
   notes?: string
+}
+
+// ─── Default BDO class roster ───────────────────────────────────────────────
+export interface SelectOption {
+  value: string
+  label: string
+  class?: string
 }
 
 // ─── Default BDO class roster ───────────────────────────────────────────────
