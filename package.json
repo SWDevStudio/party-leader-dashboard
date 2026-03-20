@@ -3,12 +3,36 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "electron:dev": "vite build && electron .",
+    "electron:build": "vite build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder"
+  },
+  "build": {
+    "appId": "com.party.dashboard",
+    "productName": "Party Leader Dashboard",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ]
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
@@ -28,7 +52,10 @@
     "@vitest/coverage-v8": "^4.1.0",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.9.0",
+    "cross-env": "^10.1.0",
     "daisyui": "^5.5.19",
+    "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
     "happy-dom": "^20.8.4",
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
