@@ -62,6 +62,22 @@
           </div>
         </div>
 
+        <!-- Joined at -->
+        <div class="form-control w-full">
+          <div class="label"><span class="label-text">Дата вступления</span></div>
+          <input
+            v-model="joinedAt"
+            v-bind="joinedAtAttrs"
+            type="date"
+            class="input input-bordered w-full"
+            :class="{ 'input-error': errors.joinedAt }"
+            data-testid="player-modal-joined-at"
+          />
+          <div v-if="errors.joinedAt" class="label">
+            <span class="label-text-alt text-error">{{ errors.joinedAt }}</span>
+          </div>
+        </div>
+
         <!-- Roles -->
         <div class="form-control w-full">
           <div class="label">
@@ -113,10 +129,13 @@ import UiSelect from '@/components/ui/UiSelect.vue'
 const props = defineProps<{ player?: Player }>()
 const emit = defineEmits<{ close: [] }>()
 
+const today = new Date().toISOString().split('T')[0]
+
 const playerSchema = toTypedSchema(z.object({
   gameSurname: z.string().min(1, 'Обязательное поле').max(64),
   discordNick:  z.string().min(1, 'Обязательное поле').max(64),
   classId:      z.string().min(1, 'Выберите класс'),
+  joinedAt:     z.string().min(1, 'Укажите дату'),
   roles:        z.array(z.string()).default([]),
 }))
 
@@ -127,6 +146,7 @@ const { handleSubmit, defineField, resetForm, errors } = useForm({
 const [gameSurname, gameSurnameAttrs] = defineField('gameSurname')
 const [discordNick, discordNickAttrs]  = defineField('discordNick')
 const [classId, classIdAttrs]          = defineField('classId')
+const [joinedAt, joinedAtAttrs]        = defineField('joinedAt')
 const [roles]                          = defineField('roles')
 
 const dialogEl = ref<HTMLDialogElement>()
@@ -137,8 +157,8 @@ watch(
   (p) => {
     resetForm({
       values: p
-        ? { gameSurname: p.gameSurname, discordNick: p.discordNick, classId: p.classId, roles: p.roles ?? [] }
-        : { gameSurname: '', discordNick: '', classId: '', roles: [] },
+        ? { gameSurname: p.gameSurname, discordNick: p.discordNick, classId: p.classId, joinedAt: p.joinedAt, roles: p.roles ?? [] }
+        : { gameSurname: '', discordNick: '', classId: '', joinedAt: today, roles: [] },
     })
   },
   { immediate: true },
@@ -182,6 +202,7 @@ const submit = handleSubmit((values) => {
       gameSurname: values.gameSurname,
       discordNick:  values.discordNick,
       classId:      values.classId,
+      joinedAt:     values.joinedAt,
       roles:        rolesOverride,
     })
   } else {
@@ -189,6 +210,7 @@ const submit = handleSubmit((values) => {
       gameSurname: values.gameSurname,
       discordNick:  values.discordNick,
       classId:      values.classId,
+      joinedAt:     values.joinedAt,
       roles:        rolesOverride,
     })
   }

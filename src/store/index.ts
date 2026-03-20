@@ -1,5 +1,5 @@
 import { reactive, watchEffect } from 'vue'
-import type { Player, SiegeEvent, GameClass } from '@/types'
+import type { Player, SiegeEvent, GameClass, Role } from '@/types'
 import { DEFAULT_CLASSES } from '@/types'
 
 interface AppData {
@@ -16,7 +16,10 @@ function load(): AppData {
     if (raw) {
       const data = JSON.parse(raw) as Partial<AppData>
       return {
-        players: data.players ?? [],
+      players: (data.players ?? []).map(p => ({
+        ...p,
+        joinedAt: (p as any).joinedAt ?? p.createdAt.split('T')[0],
+      })),
         siegeEvents: (data.siegeEvents ?? []).map(s => ({
         ...s,
         absentees: (s as any).absentees ?? [],

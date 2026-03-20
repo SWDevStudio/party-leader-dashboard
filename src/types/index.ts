@@ -27,7 +27,8 @@ export interface Player {
   discordNick: string
   classId: string
   roles?: Role[]  // если заданы — переопределяют роли класса
-  createdAt: string // ISO datetime
+  joinedAt: string  // YYYY-MM-DD, дата вступления (редактируется пользователем)
+  createdAt: string // ISO datetime, дата создания записи (только для внутреннего использования)
 }
 
 /**
