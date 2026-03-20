@@ -47,8 +47,8 @@ const siegesStore = useSiegesStore()
 const route = useRoute()
 
 const NAV = [
-  { name: 'players',  to: '/players',  icon: '👥', label: 'Игроки'  },
-  { name: 'sieges',   to: '/sieges',   icon: '🏰', label: 'Осады'   },
-  { name: 'rotation', to: '/rotation', icon: '🔄', label: 'Ротация' },
+  { name: 'players', to: '/players', icon: '👥', label: 'Игроки' },
+  { name: 'sieges',  to: '/sieges',  icon: '🏰', label: 'Осады'  },
+  { name: 'roster',  to: '/roster',  icon: '📋', label: 'Ростер'  },
 ]
 </script>

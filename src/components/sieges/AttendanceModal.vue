@@ -1,6 +1,6 @@
 <template>
   <dialog ref="dialogEl" class="modal">
-    <div class="modal-box max-w-lg">
+    <div class="modal-box w-11/12 max-w-4xl max-h-[90vh]">
       <!-- Header -->
       <h3 class="font-bold text-lg">Посещение осады</h3>
       <p v-if="siege" class="text-sm text-base-content/50 mt-0.5 mb-1">
@@ -8,7 +8,7 @@
       </p>
 
       <!-- Counts legend -->
-      <div class="flex gap-3 mb-4 text-xs flex-wrap">
+      <div class="flex gap-4 mb-4 text-sm flex-wrap">
         <span class="flex items-center gap-1">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-success"></span>
           Пришли: <strong>{{ countByState('attended') }}</strong>
@@ -20,26 +20,21 @@
         <span class="flex items-center gap-1">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-warning/70"></span>
           Пропустил сам: <strong>{{ countByState('absent') }}</strong>
-          <span class="text-base-content/30">(не учит. в ротации)</span>
+          <span class="text-base-content/30 text-xs">(не учит. в ротации)</span>
         </span>
       </div>
 
-      <!-- Search + quick actions -->
-      <div class="flex gap-2 mb-3">
-        <input
-          v-model="search"
-          type="text"
-          class="input input-bordered input-sm flex-1"
-          placeholder="Поиск..."
-        />
-        <button class="btn btn-xs btn-ghost" @click="setAll('attended')">Все пришли</button>
-        <button class="btn btn-xs btn-ghost" @click="setAll('benched')">Сброс</button>
+      <!-- Quick actions -->
+      <div class="flex gap-2 mb-3 justify-end">
+        <button class="btn btn-sm btn-outline btn-primary" data-testid="attendance-auto-rotate" @click="applyRotation">★ Ротация</button>
+        <button class="btn btn-sm btn-ghost" data-testid="attendance-set-all-attended" @click="setAll('attended')">Все пришли</button>
+        <button class="btn btn-sm btn-ghost" data-testid="attendance-reset" @click="setAll('benched')">Сброс</button>
       </div>
 
       <!-- Player list -->
       <div class="max-h-96 overflow-y-auto rounded-box border border-base-200 divide-y divide-base-200">
         <div
-          v-for="player in filtered"
+          v-for="player in sortedPlayers"
           :key="player.id"
           class="flex items-center gap-2 px-3 py-2"
           :class="{
@@ -50,44 +45,53 @@
           <!-- Player info -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="font-medium text-sm truncate">{{ player.gameSurname }}</span>
-              <span class="text-xs text-base-content/35 truncate">{{ player.discordNick }}</span>
+              <span class="font-medium text-base truncate">{{ player.gameSurname }}</span>
+              <span class="text-sm text-base-content/50 truncate">{{ player.discordNick }}</span>
             </div>
-            <div class="flex gap-1 mt-0.5 flex-wrap">
+            <div class="flex gap-1 mt-0.5 flex-wrap items-center">
               <span
                 v-for="role in playersStore.getPlayerRoles(player)"
                 :key="role"
                 class="badge badge-xs"
                 :class="roleBadgeClass(role)"
               >{{ role }}</span>
+              <span class="text-sm text-base-content/40 ml-1">
+                <template v-if="((statsMap[player.id]?.totalSieges ?? 0) - (statsMap[player.id]?.attended ?? 0)) > 0">
+                  {{ (statsMap[player.id]?.totalSieges ?? 0) - (statsMap[player.id]?.attended ?? 0) }}× недопущен
+                  <template v-if="(statsMap[player.id]?.consecutiveMisses ?? 0) > 0">
+                    &middot; <span class="text-warning">{{ statsMap[player.id].consecutiveMisses }}× подряд</span>
+                  </template>
+                </template>
+              </span>
             </div>
           </div>
 
           <!-- 3-state toggle -->
           <div class="join shrink-0">
             <button
-              class="join-item btn btn-xs"
+              class="join-item btn btn-sm"
               :class="states[player.id] === 'attended' ? 'btn-success' : 'btn-ghost opacity-40'"
               title="Пришёл"
               @click="setState(player.id, 'attended')"
             >✓ Пришёл</button>
             <button
-              class="join-item btn btn-xs"
+              class="join-item btn btn-sm"
+              :class="states[player.id] === 'benched' ? 'btn-neutral' : 'btn-ghost opacity-40'"
+              title="Не взяли (ротационный пропуск)"
+              @click="setState(player.id, 'benched')"
+            >— Недопущен</button>
+            <button
+              class="join-item btn btn-sm"
               :class="states[player.id] === 'absent' ? 'btn-warning' : 'btn-ghost opacity-40'"
               title="Пропустил сам (не учитывается в ротации)"
               @click="setState(player.id, 'absent')"
             >✗ Пропустил</button>
-            <button
-              class="join-item btn btn-xs"
-              :class="states[player.id] === 'benched' ? 'btn-neutral' : 'btn-ghost opacity-40'"
-              title="Не взяли (ротационный пропуск)"
-              @click="setState(player.id, 'benched')"
-            >— Бенч</button>
+            
           </div>
         </div>
 
-        <div v-if="filtered.length === 0" class="text-center py-6 text-base-content/40 text-sm">
-          Никого не найдено
+        <div v-if="sortedPlayers.length === 0" class="text-center py-6 text-base-content/40 text-sm">
+          Нет игроков
         </div>
       </div>
 
@@ -107,11 +111,14 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { usePlayersStore } from '@/store/players'
 import { useSiegesStore } from '@/store/sieges'
+import { useRosterStore } from '@/store/roster'
 import type { SiegeEvent } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
+import { computeAllStats, sortByPriority, buildRotation } from '@/utils/rotation'
 
 const playersStore = usePlayersStore()
 const siegesStore  = useSiegesStore()
+const rosterStore  = useRosterStore()
 
 type AttendState = 'attended' | 'absent' | 'benched'
 
@@ -119,7 +126,14 @@ const props = defineProps<{ siege?: SiegeEvent }>()
 const emit  = defineEmits<{ close: [] }>()
 
 const dialogEl = ref<HTMLDialogElement>()
-const search   = ref('')
+
+const allStats = computed(() => computeAllStats(playersStore.players, siegesStore.siegeEvents))
+const statsMap = computed(() =>
+  Object.fromEntries(allStats.value.map(s => [s.player.id, s]))
+)
+const sortedPlayers = computed(() =>
+  sortByPriority(allStats.value).map(s => s.player)
+)
 
 // player.id → state
 const states = reactive<Record<string, AttendState>>({})
@@ -136,12 +150,6 @@ watch(
   { immediate: true },
 )
 
-const filtered = computed(() => {
-  const q = search.value.toLowerCase()
-  return playersStore.players.filter(
-    p => !q || p.gameSurname.toLowerCase().includes(q) || p.discordNick.toLowerCase().includes(q),
-  )
-})
 
 function setState(id: string, state: AttendState) {
   states[id] = state
@@ -149,6 +157,19 @@ function setState(id: string, state: AttendState) {
 
 function setAll(state: AttendState) {
   for (const p of playersStore.players) states[p.id] = state
+}
+
+function applyRotation() {
+  if (!props.siege) return
+  const attending = buildRotation(
+    allStats.value,
+    rosterStore.config,
+    props.siege.totalSlots,
+    (player) => playersStore.getPlayerRoles(player),
+  )
+  for (const p of playersStore.players) {
+    states[p.id] = attending.has(p.id) ? 'attended' : 'benched'
+  }
 }
 
 function countByState(state: AttendState): number {

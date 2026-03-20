@@ -1,4 +1,5 @@
 export const Role = {
+  PartyLeader: 'Пати лидер',
   DD:      'ДД',
   RDD:     'РДД',
   Support: 'Поддержка',
@@ -8,7 +9,7 @@ export const Role = {
   Kupol:   'Купол',
   MassCC:  'Массовый контроль',
   HardRat: 'Жесткая крыса',
-  Trash: 'Альтернативно полезный'
+  Trash: 'Альтернативно полезный',  
 } as const
 
 export type Role = typeof Role[keyof typeof Role]
@@ -112,3 +113,20 @@ export const DEFAULT_CLASSES: GameClass[] = [
   { id: 'tosa-awak',         name: 'Тоса пробуда',          roles: [] },
   { id: 'deadeye',           name: 'Мертвый глаз',          roles: [Role.RDD] },
 ]
+
+// ─── Roster config ───────────────────────────────────────────────────────────
+export type RosterConfig = Record<Role, number>
+
+export const DEFAULT_ROSTER_CONFIG: RosterConfig = {
+  [Role.PartyLeader]: 1,
+  [Role.DD]:      2,
+  [Role.RDD]:     2,
+  [Role.Support]: 0,
+  [Role.Tank]:    4,
+  [Role.Fish]:    2,
+  [Role.Shaya]:   3,
+  [Role.Kupol]:   4,
+  [Role.MassCC]:  2,
+  [Role.HardRat]: 0,
+  [Role.Trash]:   0,
+}
