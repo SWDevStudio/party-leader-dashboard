@@ -1,6 +1,6 @@
 <template>
   <dialog ref="dialogEl" class="modal">
-    <div class="modal-box w-96">
+    <div class="modal-box w-3/4 ">
       <h3 class="font-bold text-lg mb-5">
         {{ isEdit ? 'Редактировать игрока' : 'Добавить игрока' }}
       </h3>
