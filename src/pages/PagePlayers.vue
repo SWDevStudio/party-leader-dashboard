@@ -94,10 +94,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { store, deletePlayer } from '../../store'
-import type { Player, Role } from '../../types'
-import { roleBadgeClass } from '../../utils/roles'
-import PlayerModal from './PlayerModal.vue'
+import { store, deletePlayer } from '@/store'
+import type { Player, Role } from '@/types'
+import { roleBadgeClass } from '@/utils/roles'
+import PlayerModal from '@/components/players/PlayerModal.vue'
 
 const modalRef   = ref<InstanceType<typeof PlayerModal>>()
 const deleteDialog = ref<HTMLDialogElement>()

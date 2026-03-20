@@ -207,10 +207,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { store, addSiege, setSiegeAttendance } from '../../store'
-import type { Role } from '../../types'
-import { computeAllStats, sortByPriority, type PlayerStats } from '../../utils/rotation'
-import { roleBadgeClass } from '../../utils/roles'
+import { store, addSiege, setSiegeAttendance } from '@/store'
+import type { Role } from '@/types'
+import { computeAllStats, sortByPriority, type PlayerStats } from '@/utils/rotation'
+import { roleBadgeClass } from '@/utils/roles'
 
 interface RotationResult {
   selected: PlayerStats[]

@@ -105,9 +105,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import { store, setSiegeAttendance } from '../../store'
-import type { SiegeEvent, Role } from '../../types'
-import { roleBadgeClass } from '../../utils/roles'
+import { store, setSiegeAttendance } from '@/store'
+import type { SiegeEvent, Role } from '@/types'
+import { roleBadgeClass } from '@/utils/roles'
 
 type AttendState = 'attended' | 'absent' | 'benched'
 

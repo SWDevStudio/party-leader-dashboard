@@ -101,10 +101,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { store, deleteSiege } from '../../store'
-import type { SiegeEvent } from '../../types'
-import SiegeFormModal  from './SiegeFormModal.vue'
-import AttendanceModal from './AttendanceModal.vue'
+import { store, deleteSiege } from '@/store'
+import type { SiegeEvent } from '@/types'
+import SiegeFormModal  from '@/components/sieges/SiegeFormModal.vue'
+import AttendanceModal from '@/components/sieges/AttendanceModal.vue'
 
 const formRef    = ref<InstanceType<typeof SiegeFormModal>>()
 const attendRef  = ref<InstanceType<typeof AttendanceModal>>()

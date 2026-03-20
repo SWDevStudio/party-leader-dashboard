@@ -13,20 +13,19 @@
 
     <!-- Nav -->
     <nav class="flex-1 px-3 py-4 space-y-1">
-      <button
+      <RouterLink
         v-for="item in NAV"
-        :key="item.view"
+        :key="item.to"
+        :to="item.to"
         class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-        :class="
-          modelValue === item.view
-            ? 'bg-primary text-primary-content'
-            : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
-        "
-        @click="$emit('update:modelValue', item.view)"
+        :class="{
+          'bg-primary text-primary-content': route.name === item.name,
+          'text-base-content/70 hover:bg-base-200 hover:text-base-content': route.name !== item.name,
+        }"
       >
         <span class="text-lg leading-none">{{ item.icon }}</span>
         {{ item.label }}
-      </button>
+      </RouterLink>
     </nav>
 
     <!-- Footer stats -->
@@ -38,15 +37,14 @@
 </template>
 
 <script setup lang="ts">
-import { store } from '../../store'
-import type { AppView } from '../../types'
+import { useRoute } from 'vue-router'
+import { store } from '@/store'
 
-defineProps<{ modelValue: AppView }>()
-defineEmits<{ 'update:modelValue': [view: AppView] }>()
+const route = useRoute()
 
-const NAV: { view: AppView; icon: string; label: string }[] = [
-  { view: 'players',  icon: '👥', label: 'Игроки'  },
-  { view: 'sieges',   icon: '🏰', label: 'Осады'   },
-  { view: 'rotation', icon: '🔄', label: 'Ротация' },
+const NAV = [
+  { name: 'players',  to: '/players',  icon: '👥', label: 'Игроки'  },
+  { name: 'sieges',   to: '/sieges',   icon: '🏰', label: 'Осады'   },
+  { name: 'rotation', to: '/rotation', icon: '🔄', label: 'Ротация' },
 ]
 </script>

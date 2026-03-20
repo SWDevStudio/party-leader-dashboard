@@ -1,6 +1,6 @@
 import { reactive, watchEffect } from 'vue'
-import type { Player, SiegeEvent, GameClass } from '../types'
-import { DEFAULT_CLASSES } from '../types'
+import type { Player, SiegeEvent, GameClass } from '@/types'
+import { DEFAULT_CLASSES } from '@/types'
 
 interface AppData {
   players: Player[]

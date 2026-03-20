@@ -1,4 +1,4 @@
-import { Role } from '../types'
+import { Role } from '@/types'
 
 const ROLE_CLASS_MAP: Record<Role, string> = {
   [Role.DD]:      'badge-error',

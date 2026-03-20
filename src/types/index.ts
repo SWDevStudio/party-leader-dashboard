@@ -44,8 +44,6 @@ export interface SiegeEvent {
   notes?: string
 }
 
-export type AppView = 'players' | 'sieges' | 'rotation'
-
 // ─── Default BDO class roster ───────────────────────────────────────────────
 export const DEFAULT_CLASSES: GameClass[] = [
   { id: 'barbarian-trad',    name: 'Варвар трады',          roles: [Role.MassCC] },

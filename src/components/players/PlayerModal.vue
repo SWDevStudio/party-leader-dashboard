@@ -71,9 +71,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { store, addPlayer, updatePlayer } from '../../store'
-import type { Player } from '../../types'
-import { roleBadgeClass } from '../../utils/roles'
+import { store, addPlayer, updatePlayer } from '@/store'
+import type { Player } from '@/types'
+import { roleBadgeClass } from '@/utils/roles'
 
 const props = defineProps<{ player?: Player }>()
 const emit = defineEmits<{ close: [] }>()

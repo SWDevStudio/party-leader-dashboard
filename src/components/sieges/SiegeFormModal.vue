@@ -55,8 +55,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { addSiege, updateSiege } from '../../store'
-import type { SiegeEvent } from '../../types'
+import { addSiege, updateSiege } from '@/store'
+import type { SiegeEvent } from '@/types'
 
 const props = defineProps<{ siege?: SiegeEvent }>()
 const emit  = defineEmits<{ close: [] }>()

@@ -1,4 +1,4 @@
-import type { Player, SiegeEvent } from '../types'
+import type { Player, SiegeEvent } from '@/types'
 
 export interface PlayerStats {
   player: Player
