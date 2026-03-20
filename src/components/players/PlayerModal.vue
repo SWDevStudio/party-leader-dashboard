@@ -1,6 +1,6 @@
 <template>
   <dialog ref="dialogEl" class="modal">
-    <div class="modal-box w-3/4 ">
+    <div class="modal-box w-11/12 max-w-2xl">
       <h3 class="font-bold text-lg mb-5">
         {{ isEdit ? 'Редактировать игрока' : 'Добавить игрока' }}
       </h3>
@@ -45,18 +45,13 @@
         <!-- Class -->
         <div class="form-control w-full">
           <div class="label"><span class="label-text">Класс</span></div>
-          <select
-            v-model="classId"
-            v-bind="classIdAttrs"
-            class="select select-bordered w-full"
-            :class="{ 'select-error': errors.classId }"
+          <UiSelectSearch
+            :model-value="classId ?? null"
+            :options="classOptions"
+            placeholder="Начните вводить название..."
             data-testid="player-modal-class"
-          >
-            <option value="" disabled>Выберите класс...</option>
-            <option v-for="cls in playersStore.classes" :key="cls.id" :value="cls.id">
-              {{ cls.name }}
-            </option>
-          </select>
+            @update:model-value="(v) => { classId = v ?? '' }"
+          />
           <div v-if="errors.classId" class="label">
             <span class="label-text-alt text-error">{{ errors.classId }}</span>
           </div>
@@ -127,6 +122,7 @@ import { ALL_ROLES } from '@/types'
 import type { Player, Role, SelectOption } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
 import UiSelect from '@/components/ui/UiSelect.vue'
+import UiSelectSearch from '@/components/ui/UiSelectSearch.vue'
 
 const props = defineProps<{ player?: Player }>()
 const emit = defineEmits<{ close: [] }>()
@@ -147,7 +143,7 @@ const { handleSubmit, defineField, resetForm, errors } = useForm({
 
 const [gameSurname, gameSurnameAttrs] = defineField('gameSurname')
 const [discordNick, discordNickAttrs]  = defineField('discordNick')
-const [classId, classIdAttrs]          = defineField('classId')
+const [classId]                        = defineField('classId')
 const [joinedAt, joinedAtAttrs]        = defineField('joinedAt')
 const [roles]                          = defineField('roles')
 
@@ -164,6 +160,10 @@ watch(
     })
   },
   { immediate: true },
+)
+
+const classOptions = computed<SelectOption[]>(() =>
+  playersStore.classes.map(c => ({ value: c.id, label: c.name }))
 )
 
 const classDefaultRoles = computed<Role[]>(

@@ -10,4 +10,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  test: {
+    environment: 'happy-dom',
+    globals: true,
+    alias: {
+      '@/': fileURLToPath(new URL('./src/', import.meta.url)),
+    },
+  },
 })

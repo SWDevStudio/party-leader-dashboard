@@ -103,6 +103,7 @@ export function buildRotation(
     if (count <= 0) continue
     let filled = 0
     for (const stat of sorted) {
+      if (assigned.size >= totalSlots) break
       if (filled >= count) break
       if (assigned.has(stat.player.id)) continue
       if (getPlayerRoles(stat.player).includes(role)) {
