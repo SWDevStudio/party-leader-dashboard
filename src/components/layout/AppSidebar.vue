@@ -30,15 +30,19 @@
 
     <!-- Footer stats -->
     <div class="px-5 py-3 border-t border-base-200 text-xs text-base-content/40 space-y-0.5">
-      <div>{{ store.players.length }} игроков</div>
-      <div>{{ store.siegeEvents.length }} осад</div>
+      <div>{{ playersStore.players.length }} игроков</div>
+      <div>{{ siegesStore.siegeEvents.length }} осад</div>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { store } from '@/store'
+import { usePlayersStore } from '@/store/players'
+import { useSiegesStore } from '@/store/sieges'
+
+const playersStore = usePlayersStore()
+const siegesStore = useSiegesStore()
 
 const route = useRoute()
 

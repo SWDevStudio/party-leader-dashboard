@@ -53,7 +53,7 @@
             data-testid="player-modal-class"
           >
             <option value="" disabled>Выберите класс...</option>
-            <option v-for="cls in store.classes" :key="cls.id" :value="cls.id">
+            <option v-for="cls in playersStore.classes" :key="cls.id" :value="cls.id">
               {{ cls.name }}
             </option>
           </select>
@@ -120,7 +120,9 @@ import { ref, computed, watch } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { store, addPlayer, updatePlayer } from '@/store'
+import { usePlayersStore } from '@/store/players'
+
+const playersStore = usePlayersStore()
 import { ALL_ROLES } from '@/types'
 import type { Player, Role, SelectOption } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
@@ -165,7 +167,7 @@ watch(
 )
 
 const classDefaultRoles = computed<Role[]>(
-  () => store.classes.find(c => c.id === classId.value)?.roles ?? [],
+  () => playersStore.classes.find(c => c.id === classId.value)?.roles ?? [],
 )
 
 const hasRoleOverride = computed(() => (roles.value?.length ?? 0) > 0)
@@ -198,7 +200,7 @@ function close() {
 const submit = handleSubmit((values) => {
   const rolesOverride = (values.roles?.length ?? 0) > 0 ? values.roles as Role[] : undefined
   if (isEdit.value && props.player) {
-    updatePlayer(props.player.id, {
+    playersStore.updatePlayer(props.player.id, {
       gameSurname: values.gameSurname,
       discordNick:  values.discordNick,
       classId:      values.classId,
@@ -206,7 +208,7 @@ const submit = handleSubmit((values) => {
       roles:        rolesOverride,
     })
   } else {
-    addPlayer({
+    playersStore.addPlayer({
       gameSurname: values.gameSurname,
       discordNick:  values.discordNick,
       classId:      values.classId,

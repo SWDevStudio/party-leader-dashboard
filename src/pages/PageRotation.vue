@@ -9,7 +9,7 @@
     </div>
 
     <!-- No players -->
-    <div v-if="store.players.length === 0" class="hero min-h-64">
+    <div v-if="playersStore.players.length === 0" class="hero min-h-64">
       <div class="hero-content text-center">
         <div>
           <p class="text-4xl mb-3">🔄</p>
@@ -30,13 +30,13 @@
 
             <label class="form-control">
               <div class="label py-1">
-                <span class="label-text text-xs">Слотов (макс {{ store.players.length }})</span>
+                <span class="label-text text-xs">Слотов (макс {{ playersStore.players.length }})</span>
               </div>
               <input
                 v-model.number="slots"
                 type="number"
                 min="1"
-                :max="store.players.length"
+                :max="playersStore.players.length"
                 class="input input-bordered input-sm w-24"
               />
             </label>
@@ -112,7 +112,7 @@
                       <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span class="text-xs text-base-content/40">{{ className(stats.player.classId) }}</span>
                         <span
-                          v-for="role in getPlayerRoles(stats.player)"
+                          v-for="role in playersStore.getPlayerRoles(stats.player)"
                           :key="role"
                           class="badge badge-xs"
                           :class="roleBadgeClass(role)"
@@ -175,7 +175,7 @@
                       <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span class="text-xs text-base-content/40">{{ className(stats.player.classId) }}</span>
                         <span
-                          v-for="role in getPlayerRoles(stats.player)"
+                          v-for="role in playersStore.getPlayerRoles(stats.player)"
                           :key="role"
                           class="badge badge-xs"
                           :class="roleBadgeClass(role)"
@@ -204,10 +204,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { store, addSiege, setSiegeAttendance, getPlayerRoles } from '@/store'
+import { usePlayersStore } from '@/store/players'
+import { useSiegesStore } from '@/store/sieges'
 import type { Role } from '@/types'
 import { computeAllStats, sortByPriority, type PlayerStats } from '@/utils/rotation'
 import { roleBadgeClass } from '@/utils/roles'
+
+const playersStore = usePlayersStore()
+const siegesStore  = useSiegesStore()
 
 interface RotationResult {
   selected: PlayerStats[]
@@ -220,9 +224,9 @@ const slots     = ref(40)
 const result    = ref<RotationResult | null>(null)
 
 function calculate() {
-  const all    = computeAllStats(store.players, store.siegeEvents)
+  const all    = computeAllStats(playersStore.players, siegesStore.siegeEvents)
   const sorted = sortByPriority(all)
-  const take   = Math.min(Math.max(slots.value, 0), store.players.length)
+  const take   = Math.min(Math.max(slots.value, 0), playersStore.players.length)
   result.value = {
     selected: sorted.slice(0, take),
     benched:  sorted.slice(take),
@@ -234,7 +238,7 @@ const roleComposition = computed<Partial<Record<Role, number>>>(() => {
   if (!result.value) return {}
   const counts: Partial<Record<Role, number>> = {}
   for (const stats of result.value.selected) {
-    const roles = store.classes.find(c => c.id === stats.player.classId)?.roles ?? []
+    const roles = playersStore.classes.find(c => c.id === stats.player.classId)?.roles ?? []
     for (const role of roles) {
       counts[role] = (counts[role] ?? 0) + 1
     }
@@ -257,8 +261,8 @@ function moveToActive(idx: number) {
 
 function saveAsSiege() {
   if (!result.value) return
-  const siege = addSiege({ date: siegeDate.value, totalSlots: slots.value })
-  setSiegeAttendance(siege.id, result.value.selected.map(s => s.player.id), [])
+  const siege = siegesStore.addSiege({ date: siegeDate.value, totalSlots: slots.value })
+  siegesStore.setSiegeAttendance(siege.id, result.value.selected.map(s => s.player.id), [])
   result.value = null
   alert(
     `Осада от ${new Date(siegeDate.value + 'T12:00:00').toLocaleDateString('ru-RU')} сохранена!`,
@@ -266,7 +270,7 @@ function saveAsSiege() {
 }
 
 function className(classId: string): string {
-  return store.classes.find(c => c.id === classId)?.name ?? classId
+  return playersStore.classes.find(c => c.id === classId)?.name ?? classId
 }
 
 function fmtDateShort(d: string): string {

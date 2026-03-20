@@ -55,7 +55,7 @@
             </div>
             <div class="flex gap-1 mt-0.5 flex-wrap">
               <span
-                v-for="role in getPlayerRoles(player)"
+                v-for="role in playersStore.getPlayerRoles(player)"
                 :key="role"
                 class="badge badge-xs"
                 :class="roleBadgeClass(role)"
@@ -105,9 +105,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import { store, setSiegeAttendance, getPlayerRoles } from '@/store'
+import { usePlayersStore } from '@/store/players'
+import { useSiegesStore } from '@/store/sieges'
 import type { SiegeEvent } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
+
+const playersStore = usePlayersStore()
+const siegesStore  = useSiegesStore()
 
 type AttendState = 'attended' | 'absent' | 'benched'
 
@@ -123,8 +127,7 @@ const states = reactive<Record<string, AttendState>>({})
 watch(
   () => props.siege,
   (s) => {
-    // Reset all players to benched, then apply saved states
-    for (const p of store.players) states[p.id] = 'benched'
+    for (const p of playersStore.players) states[p.id] = 'benched'
     if (s) {
       for (const id of s.attendees)  states[id] = 'attended'
       for (const id of (s.absentees ?? [])) states[id] = 'absent'
@@ -135,7 +138,7 @@ watch(
 
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
-  return store.players.filter(
+  return playersStore.players.filter(
     p => !q || p.gameSurname.toLowerCase().includes(q) || p.discordNick.toLowerCase().includes(q),
   )
 })
@@ -145,11 +148,11 @@ function setState(id: string, state: AttendState) {
 }
 
 function setAll(state: AttendState) {
-  for (const p of store.players) states[p.id] = state
+  for (const p of playersStore.players) states[p.id] = state
 }
 
 function countByState(state: AttendState): number {
-  return store.players.filter(p => states[p.id] === state).length
+  return playersStore.players.filter(p => states[p.id] === state).length
 }
 
 function fmtDate(d: string) {
@@ -163,9 +166,9 @@ function close() { dialogEl.value?.close(); emit('close') }
 
 function save() {
   if (props.siege) {
-    const attended = store.players.filter(p => states[p.id] === 'attended').map(p => p.id)
-    const absent   = store.players.filter(p => states[p.id] === 'absent').map(p => p.id)
-    setSiegeAttendance(props.siege.id, attended, absent)
+    const attended = playersStore.players.filter(p => states[p.id] === 'attended').map(p => p.id)
+    const absent   = playersStore.players.filter(p => states[p.id] === 'absent').map(p => p.id)
+    siegesStore.setSiegeAttendance(props.siege.id, attended, absent)
   }
   close()
 }

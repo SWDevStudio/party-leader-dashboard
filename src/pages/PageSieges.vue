@@ -4,13 +4,13 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-2xl font-bold">Осады</h2>
-        <p class="text-sm text-base-content/50 mt-0.5">{{ store.siegeEvents.length }} событий</p>
+        <p class="text-sm text-base-content/50 mt-0.5">{{ siegesStore.siegeEvents.length }} событий</p>
       </div>
       <button class="btn btn-primary btn-sm" @click="openAdd">+ Добавить осаду</button>
     </div>
 
     <!-- Empty state -->
-    <div v-if="store.siegeEvents.length === 0" class="hero min-h-64">
+    <div v-if="siegesStore.siegeEvents.length === 0" class="hero min-h-64">
       <div class="hero-content text-center">
         <div>
           <p class="text-4xl mb-3">🏰</p>
@@ -101,10 +101,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { store, deleteSiege } from '@/store'
+import { useSiegesStore } from '@/store/sieges'
 import type { SiegeEvent } from '@/types'
 import SiegeFormModal  from '@/components/sieges/SiegeFormModal.vue'
 import AttendanceModal from '@/components/sieges/AttendanceModal.vue'
+
+const siegesStore = useSiegesStore()
 
 const formRef    = ref<InstanceType<typeof SiegeFormModal>>()
 const attendRef  = ref<InstanceType<typeof AttendanceModal>>()
@@ -115,7 +117,7 @@ const attendSiege   = ref<SiegeEvent | undefined>()
 const deletingSiege = ref<SiegeEvent | undefined>()
 
 const sorted = computed(() =>
-  [...store.siegeEvents].sort((a, b) => b.date.localeCompare(a.date)),
+  [...siegesStore.siegeEvents].sort((a, b) => b.date.localeCompare(a.date)),
 )
 
 function openAdd() {
@@ -140,7 +142,7 @@ function askDelete(s: SiegeEvent) {
 
 function confirmDelete() {
   if (deletingSiege.value) {
-    deleteSiege(deletingSiege.value.id)
+    siegesStore.deleteSiege(deletingSiege.value.id)
     deletingSiege.value = undefined
   }
   deleteDialog.value?.close()

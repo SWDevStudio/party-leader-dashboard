@@ -70,7 +70,9 @@ import { ref, computed, watch } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { addSiege, updateSiege } from '@/store'
+import { useSiegesStore } from '@/store/sieges'
+
+const siegesStore = useSiegesStore()
 import type { SiegeEvent } from '@/types'
 
 const props = defineProps<{ siege?: SiegeEvent }>()
@@ -116,9 +118,9 @@ const submit = handleSubmit((values) => {
     notes:      values.notes?.trim() || undefined,
   }
   if (isEdit.value && props.siege) {
-    updateSiege(props.siege.id, payload)
+    siegesStore.updateSiege(props.siege.id, payload)
   } else {
-    addSiege(payload)
+    siegesStore.addSiege(payload)
   }
   close()
 })

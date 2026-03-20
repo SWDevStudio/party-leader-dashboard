@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-2xl font-bold">Игроки</h2>
-        <p class="text-sm text-base-content/50 mt-0.5">{{ store.players.length }} участников</p>
+        <p class="text-sm text-base-content/50 mt-0.5">{{ playersStore.players.length }} участников</p>
       </div>
       <button class="btn btn-primary btn-sm" @click="openAdd">
         + Добавить игрока
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Empty state -->
-    <div v-if="store.players.length === 0" class="hero min-h-64">
+    <div v-if="playersStore.players.length === 0" class="hero min-h-64">
       <div class="hero-content text-center">
         <div>
           <p class="text-4xl mb-3">👥</p>
@@ -36,7 +36,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(player, idx) in store.players" :key="player.id">
+          <tr v-for="(player, idx) in playersStore.players" :key="player.id">
             <td class="text-base-content/30 text-sm">{{ idx + 1 }}</td>
             <td class="font-semibold">{{ player.gameSurname }}</td>
             <td class="text-base-content/60">{{ player.discordNick }}</td>
@@ -44,7 +44,7 @@
             <td>
               <div class="flex flex-wrap gap-1">
                 <span
-                  v-for="role in getPlayerRoles(player)"
+                  v-for="role in playersStore.getPlayerRoles(player)"
                   :key="role"
                   class="badge badge-xs"
                   :class="roleBadgeClass(role)"
@@ -94,10 +94,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { store, deletePlayer, getPlayerRoles } from '@/store'
+import { usePlayersStore } from '@/store/players'
+import { useSiegesStore } from '@/store/sieges'
 import type { Player } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
 import PlayerModal from '@/components/players/PlayerModal.vue'
+
+const playersStore = usePlayersStore()
+const siegesStore  = useSiegesStore()
 
 const modalRef   = ref<InstanceType<typeof PlayerModal>>()
 const deleteDialog = ref<HTMLDialogElement>()
@@ -122,14 +126,15 @@ function askDelete(p: Player) {
 
 function confirmDelete() {
   if (deletingPlayer.value) {
-    deletePlayer(deletingPlayer.value.id)
+    siegesStore.removePlayerFromAll(deletingPlayer.value.id)
+    playersStore.deletePlayer(deletingPlayer.value.id)
     deletingPlayer.value = undefined
   }
   deleteDialog.value?.close()
 }
 
 function className(classId: string): string {
-  return store.classes.find(c => c.id === classId)?.name ?? classId
+  return playersStore.classes.find(c => c.id === classId)?.name ?? classId
 }
 
 function fmtDate(iso: string): string {
