@@ -1,20 +1,22 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import PagePlayers from '@/pages/PagePlayers.vue'
 import PageSieges  from '@/pages/PageSieges.vue'
 import PageRoster  from '@/pages/PageRoster.vue'
 import PageAbout   from '@/pages/PageAbout.vue'
+import PageRaids   from '@/pages/PageRaids.vue'
 import PageLogin        from '@/pages/PageLogin.vue'
 import PageRegister     from '@/pages/PageRegister.vue'
 import PageVerifyEmail  from '@/pages/PageVerifyEmail.vue'
 import { useAuthStore } from '@/store/auth'
 
 export const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     { path: '/',             redirect: '/players' },
     { path: '/players',      component: PagePlayers,     name: 'players' },
     { path: '/sieges',       component: PageSieges,      name: 'sieges'  },
     { path: '/roster',       component: PageRoster,      name: 'roster'  },
+    { path: '/raids',        component: PageRaids,       name: 'raids'   },
     { path: '/about',        component: PageAbout,       name: 'about'   },
     { path: '/login',        component: PageLogin,       name: 'login',       meta: { public: true } },
     { path: '/register',     component: PageRegister,    name: 'register',    meta: { public: true } },

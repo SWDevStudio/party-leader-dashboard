@@ -3,6 +3,7 @@ import { authRouter } from './auth.js'
 import { playersRouter } from './players.js'
 import { siegesRouter } from './sieges.js'
 import { rosterRouter } from './roster.js'
+import { raidsRouter } from './raids.js'
 
 export const router = Router()
 
@@ -14,3 +15,4 @@ router.use('/auth', authRouter)
 router.use('/players', playersRouter)
 router.use('/sieges', siegesRouter)
 router.use('/roster', rosterRouter)
+router.use('/raids', raidsRouter)

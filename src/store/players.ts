@@ -20,9 +20,10 @@ export const usePlayersStore = defineStore('players', () => {
     players.value = await service.getAll()
   }
 
-  async function addPlayer(data: Omit<Player, 'id' | 'createdAt'>): Promise<void> {
+  async function addPlayer(data: Omit<Player, 'id' | 'createdAt'>): Promise<Player> {
     const created = await service.create(data)
     players.value.push(created)
+    return created
   }
 
   async function updatePlayer(id: string, data: Partial<Omit<Player, 'id' | 'createdAt'>>): Promise<void> {

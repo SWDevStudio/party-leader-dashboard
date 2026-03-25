@@ -31,6 +31,7 @@
             <th>Discord</th>
             <th>Класс</th>
             <th>Роли</th>
+            <th>Рейд</th>
             <th>Создан</th>
             <th class="w-24"></th>
           </tr>
@@ -49,6 +50,16 @@
                   class="badge badge-xs"
                   :class="roleBadgeClass(role)"
                 >{{ role }}</span>
+              </div>
+            </td>
+            <td>
+              <div v-if="raidsStore.getPlayerRaids(player.id).length === 0" class="text-base-content/30 text-sm">—</div>
+              <div v-else class="flex flex-wrap gap-1">
+                <span
+                  v-for="raid in raidsStore.getPlayerRaids(player.id)"
+                  :key="raid.id"
+                  class="badge badge-sm badge-outline"
+                >{{ raid.name }}</span>
               </div>
             </td>
             <td class="text-xs text-base-content/40">{{ fmtDate(player.createdAt) }}</td>
@@ -96,14 +107,19 @@
 import { ref, onMounted } from 'vue'
 import { usePlayersStore } from '@/store/players'
 import { useSiegesStore } from '@/store/sieges'
+import { useRaidsStore } from '@/store/raids'
 import type { Player } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
 import PlayerModal from '@/components/players/PlayerModal.vue'
 
 const playersStore = usePlayersStore()
 const siegesStore  = useSiegesStore()
+const raidsStore   = useRaidsStore()
 
-onMounted(() => { playersStore.fetchPlayers() })
+onMounted(() => {
+  playersStore.fetchPlayers()
+  raidsStore.fetchRaids()
+})
 
 const modalRef   = ref<InstanceType<typeof PlayerModal>>()
 const deleteDialog = ref<HTMLDialogElement>()

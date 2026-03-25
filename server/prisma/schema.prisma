@@ -20,6 +20,7 @@ model User {
   players      Player[]
   sieges       SiegeEvent[]
   rosterConfig RosterConfig?
+  raids        Raid[]
 }
 
 model RosterConfig {
@@ -42,6 +43,7 @@ model Player {
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   attendances SiegeAttendance[]
   absences    SiegeAbsence[]
+  raids       RaidPlayer[]
 }
 
 model SiegeEvent {
@@ -55,6 +57,26 @@ model SiegeEvent {
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   attendances SiegeAttendance[]
   absences    SiegeAbsence[]
+}
+
+model Raid {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  createdAt DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  players RaidPlayer[]
+}
+
+model RaidPlayer {
+  raidId   String
+  playerId String
+
+  raid   Raid   @relation(fields: [raidId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@id([raidId, playerId])
 }
 
 // Пришёл на осаду

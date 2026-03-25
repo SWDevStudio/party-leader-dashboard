@@ -7,6 +7,16 @@
       </div>
     </div>
 
+    <div class="alert alert-info mb-4 max-w-md text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <p>Укажи, <strong>сколько слотов каждого класса</strong> должно быть в идеальном рейде на 20 человек.</p>
+        <p class="mt-1 opacity-80">Если на осаде меньше игроков — алгоритм автоматически подберёт лучший состав из тех, кто есть, сохраняя пропорции.</p>
+      </div>
+    </div>
+
     <div class="card bg-base-100 shadow-sm w-80">
       <div class="card-body gap-2 p-5">
         <div

@@ -47,6 +47,13 @@ export interface SiegeEvent {
   notes?: string
 }
 
+export interface Raid {
+  id: string
+  name: string
+  playerIds: string[]
+  createdAt: string
+}
+
 // ─── Default BDO class roster ───────────────────────────────────────────────
 export interface SelectOption {
   value: string

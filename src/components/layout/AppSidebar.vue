@@ -58,6 +58,7 @@ function logout() {
 
 const NAV = [
   { name: 'players', to: '/players', icon: '👥', label: 'Игроки' },
+  { name: 'raids',   to: '/raids',   icon: '⚔️', label: 'Рейды'  },
   { name: 'sieges',  to: '/sieges',  icon: '🏰', label: 'Осады'  },
   { name: 'roster',  to: '/roster',  icon: '📋', label: 'Ростер'  },
   { name: 'about',   to: '/about',   icon: 'ℹ️', label: 'О проекте' },

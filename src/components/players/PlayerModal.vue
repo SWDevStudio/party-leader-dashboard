@@ -95,6 +95,41 @@
           />
         </div>
 
+        <!-- Raids -->
+        <div class="form-control w-full">
+          <div class="label"><span class="label-text">Рейд</span></div>
+          <div v-if="raidsStore.raids.length === 0" class="text-base-content/40 text-sm">
+            Сначала создайте рейды на странице «Рейды»
+          </div>
+          <div v-else class="flex flex-wrap gap-3">
+            <label class="flex items-center gap-1.5 cursor-pointer" data-testid="modal-raid-none">
+              <input
+                type="radio"
+                class="radio radio-sm"
+                name="raid"
+                :checked="selectedRaidId === null"
+                @change="selectedRaidId = null"
+              />
+              <span class="text-sm text-base-content/50">Не в рейде</span>
+            </label>
+            <label
+              v-for="raid in raidsStore.raids"
+              :key="raid.id"
+              class="flex items-center gap-1.5 cursor-pointer"
+              :data-testid="`modal-raid-radio-${raid.id}`"
+            >
+              <input
+                type="radio"
+                class="radio radio-sm"
+                name="raid"
+                :checked="selectedRaidId === raid.id"
+                @change="selectedRaidId = raid.id"
+              />
+              <span class="text-sm">{{ raid.name }}</span>
+            </label>
+          </div>
+        </div>
+
         <div class="modal-action pt-2">
           <button type="button" class="btn btn-ghost" data-testid="player-modal-cancel" @click="close">Отмена</button>
           <button type="submit" class="btn btn-primary" data-testid="player-modal-submit">
@@ -116,8 +151,12 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
 import { usePlayersStore } from '@/store/players'
+import { useRaidsStore } from '@/store/raids'
 
 const playersStore = usePlayersStore()
+const raidsStore = useRaidsStore()
+
+const selectedRaidId = ref<string | null>(null)
 import { ALL_ROLES } from '@/types'
 import type { Player, Role, SelectOption } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
@@ -158,6 +197,9 @@ watch(
         ? { gameSurname: p.gameSurname, discordNick: p.discordNick, classId: p.classId, joinedAt: p.joinedAt, roles: p.roles ?? [] }
         : { gameSurname: '', discordNick: '', classId: '', joinedAt: today, roles: [] },
     })
+    selectedRaidId.value = p
+      ? (raidsStore.raids.find(r => r.playerIds.includes(p.id))?.id ?? null)
+      : null
   },
   { immediate: true },
 )
@@ -189,6 +231,7 @@ function resetRoles() {
 }
 
 function open() {
+  raidsStore.fetchRaids()
   dialogEl.value?.showModal()
 }
 
@@ -199,6 +242,7 @@ function close() {
 
 const submit = handleSubmit(async (values) => {
   const roles = ((values.roles?.length ?? 0) > 0 ? values.roles : []) as Role[]
+  let playerId: string
   if (isEdit.value && props.player) {
     await playersStore.updatePlayer(props.player.id, {
       gameSurname: values.gameSurname,
@@ -207,15 +251,28 @@ const submit = handleSubmit(async (values) => {
       joinedAt:     values.joinedAt,
       roles,
     })
+    playerId = props.player.id
   } else {
-    await playersStore.addPlayer({
+    const created = await playersStore.addPlayer({
       gameSurname: values.gameSurname,
       discordNick:  values.discordNick,
       classId:      values.classId,
       joinedAt:     values.joinedAt,
       roles,
     })
+    playerId = created.id
   }
+
+  for (const raid of raidsStore.raids) {
+    const shouldBeIn = selectedRaidId.value === raid.id
+    const isInRaid = raid.playerIds.includes(playerId)
+    if (shouldBeIn && !isInRaid) {
+      await raidsStore.updateRaid(raid.id, { playerIds: [...raid.playerIds, playerId] })
+    } else if (!shouldBeIn && isInRaid) {
+      await raidsStore.updateRaid(raid.id, { playerIds: raid.playerIds.filter(id => id !== playerId) })
+    }
+  }
+
   close()
 })
 
