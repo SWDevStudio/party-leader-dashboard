@@ -185,11 +185,11 @@ function fmtDate(d: string) {
 function open() { dialogEl.value?.showModal() }
 function close() { dialogEl.value?.close(); emit('close') }
 
-function save() {
+async function save() {
   if (props.siege) {
     const attended = playersStore.players.filter(p => states[p.id] === 'attended').map(p => p.id)
     const absent   = playersStore.players.filter(p => states[p.id] === 'absent').map(p => p.id)
-    siegesStore.setSiegeAttendance(props.siege.id, attended, absent)
+    await siegesStore.setSiegeAttendance(props.siege.id, attended, absent)
   }
   close()
 }

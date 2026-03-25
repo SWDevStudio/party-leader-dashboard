@@ -100,13 +100,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useSiegesStore } from '@/store/sieges'
+import { usePlayersStore } from '@/store/players'
 import type { SiegeEvent } from '@/types'
 import SiegeFormModal  from '@/components/sieges/SiegeFormModal.vue'
 import AttendanceModal from '@/components/sieges/AttendanceModal.vue'
 
 const siegesStore = useSiegesStore()
+const playersStore = usePlayersStore()
+
+onMounted(() => {
+  siegesStore.fetchSieges()
+  playersStore.fetchPlayers()
+})
 
 const formRef    = ref<InstanceType<typeof SiegeFormModal>>()
 const attendRef  = ref<InstanceType<typeof AttendanceModal>>()

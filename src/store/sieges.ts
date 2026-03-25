@@ -1,34 +1,39 @@
-import { useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import type { SiegeEvent } from '@/types'
-
-const STORAGE_KEY = 'party-dashboard-sieges-v1'
+import { useSiegesService } from '@/services/siegesService'
 
 export const useSiegesStore = defineStore('sieges', () => {
-  const siegeEvents = useLocalStorage<SiegeEvent[]>(STORAGE_KEY, [])
+  const siegeEvents = ref<SiegeEvent[]>([])
 
-  function addSiege(data: Omit<SiegeEvent, 'id' | 'attendees' | 'absentees'>): SiegeEvent {
-    const siege: SiegeEvent = { ...data, id: crypto.randomUUID(), attendees: [], absentees: [] }
-    siegeEvents.value.push(siege)
-    return siege
+  const service = useSiegesService()
+
+  async function fetchSieges(): Promise<void> {
+    siegeEvents.value = await service.getAll()
   }
 
-  function updateSiege(id: string, data: Partial<Omit<SiegeEvent, 'id'>>): void {
-    const s = siegeEvents.value.find(x => x.id === id)
-    if (s) Object.assign(s, data)
+  async function addSiege(data: Omit<SiegeEvent, 'id' | 'attendees' | 'absentees'>): Promise<SiegeEvent> {
+    const created = await service.create(data)
+    siegeEvents.value.push(created)
+    return created
   }
 
-  function deleteSiege(id: string): void {
+  async function updateSiege(id: string, data: Partial<Omit<SiegeEvent, 'id'>>): Promise<void> {
+    const updated = await service.update(id, data)
+    const idx = siegeEvents.value.findIndex(x => x.id === id)
+    if (idx !== -1) siegeEvents.value[idx] = updated
+  }
+
+  async function deleteSiege(id: string): Promise<void> {
+    await service.remove(id)
     const idx = siegeEvents.value.findIndex(x => x.id === id)
     if (idx !== -1) siegeEvents.value.splice(idx, 1)
   }
 
-  function setSiegeAttendance(siegeId: string, attendees: string[], absentees: string[]): void {
-    const s = siegeEvents.value.find(x => x.id === siegeId)
-    if (s) {
-      s.attendees = [...attendees]
-      s.absentees = [...absentees]
-    }
+  async function setSiegeAttendance(siegeId: string, attendees: string[], absentees: string[]): Promise<void> {
+    const updated = await service.updateAttendance(siegeId, attendees, absentees)
+    const idx = siegeEvents.value.findIndex(x => x.id === siegeId)
+    if (idx !== -1) siegeEvents.value[idx] = updated
   }
 
   function removePlayerFromAll(playerId: string): void {
@@ -38,5 +43,5 @@ export const useSiegesStore = defineStore('sieges', () => {
     }
   }
 
-  return { siegeEvents, addSiege, updateSiege, deleteSiege, setSiegeAttendance, removePlayerFromAll }
+  return { siegeEvents, fetchSieges, addSiege, updateSiege, deleteSiege, setSiegeAttendance, removePlayerFromAll }
 })

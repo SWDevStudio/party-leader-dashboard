@@ -1,16 +1,21 @@
 import { defineStore } from 'pinia'
-import { useLocalStorage } from '@vueuse/core'
+import { ref } from 'vue'
 import { DEFAULT_ROSTER_CONFIG, type Role, type RosterConfig } from '@/types'
+import { useRosterService } from '@/services/rosterService'
 
 export const useRosterStore = defineStore('roster', () => {
-  const config = useLocalStorage<RosterConfig>(
-    'party-dashboard-roster-v1',
-    () => ({ ...DEFAULT_ROSTER_CONFIG }),
-  )
+  const config = ref<RosterConfig>({ ...DEFAULT_ROSTER_CONFIG })
 
-  function setRoleCount(role: Role, count: number) {
-    config.value[role] = Math.max(0, count)
+  const service = useRosterService()
+
+  async function fetchRoster(): Promise<void> {
+    config.value = await service.get()
   }
 
-  return { config, setRoleCount }
+  function setRoleCount(role: Role, count: number): void {
+    config.value[role] = Math.max(0, count)
+    service.save({ ...config.value }).catch(console.error)
+  }
+
+  return { config, fetchRoster, setRoleCount }
 })

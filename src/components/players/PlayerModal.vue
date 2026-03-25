@@ -197,23 +197,23 @@ function close() {
   emit('close')
 }
 
-const submit = handleSubmit((values) => {
-  const rolesOverride = (values.roles?.length ?? 0) > 0 ? values.roles as Role[] : undefined
+const submit = handleSubmit(async (values) => {
+  const roles = ((values.roles?.length ?? 0) > 0 ? values.roles : []) as Role[]
   if (isEdit.value && props.player) {
-    playersStore.updatePlayer(props.player.id, {
+    await playersStore.updatePlayer(props.player.id, {
       gameSurname: values.gameSurname,
       discordNick:  values.discordNick,
       classId:      values.classId,
       joinedAt:     values.joinedAt,
-      roles:        rolesOverride,
+      roles,
     })
   } else {
-    playersStore.addPlayer({
+    await playersStore.addPlayer({
       gameSurname: values.gameSurname,
       discordNick:  values.discordNick,
       classId:      values.classId,
       joinedAt:     values.joinedAt,
-      roles:        rolesOverride,
+      roles,
     })
   }
   close()

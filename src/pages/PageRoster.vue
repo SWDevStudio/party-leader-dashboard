@@ -45,12 +45,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { ALL_ROLES, type Role } from '@/types'
 import { useRosterStore } from '@/store/roster'
 import { roleBadgeClass } from '@/utils/roles'
 
 const rosterStore = useRosterStore()
+
+onMounted(() => { rosterStore.fetchRoster() })
 
 const total = computed(() =>
   ALL_ROLES.reduce((sum, role) => sum + (rosterStore.config[role] ?? 0), 0),

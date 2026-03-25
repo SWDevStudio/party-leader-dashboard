@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 release
+server/node_modules
+server/dist
+server/.env
 *.local
 
 # Editor directories and files

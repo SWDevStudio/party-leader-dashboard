@@ -1,0 +1,11 @@
+node_modules
+dist
+server/dist
+server/node_modules
+release
+.git
+.github
+*.md
+.env
+.env.*
+electron

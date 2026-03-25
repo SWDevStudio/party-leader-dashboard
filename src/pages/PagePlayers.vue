@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { usePlayersStore } from '@/store/players'
 import { useSiegesStore } from '@/store/sieges'
 import type { Player } from '@/types'
@@ -102,6 +102,8 @@ import PlayerModal from '@/components/players/PlayerModal.vue'
 
 const playersStore = usePlayersStore()
 const siegesStore  = useSiegesStore()
+
+onMounted(() => { playersStore.fetchPlayers() })
 
 const modalRef   = ref<InstanceType<typeof PlayerModal>>()
 const deleteDialog = ref<HTMLDialogElement>()
@@ -124,10 +126,10 @@ function askDelete(p: Player) {
   deleteDialog.value?.showModal()
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (deletingPlayer.value) {
+    await playersStore.deletePlayer(deletingPlayer.value.id)
     siegesStore.removePlayerFromAll(deletingPlayer.value.id)
-    playersStore.deletePlayer(deletingPlayer.value.id)
     deletingPlayer.value = undefined
   }
   deleteDialog.value?.close()

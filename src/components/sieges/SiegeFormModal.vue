@@ -111,16 +111,16 @@ watch(
 function open()  { dialogEl.value?.showModal() }
 function close() { dialogEl.value?.close(); emit('close') }
 
-const submit = handleSubmit((values) => {
+const submit = handleSubmit(async (values) => {
   const payload = {
     date:       values.date,
     totalSlots: values.totalSlots,
     notes:      values.notes?.trim() || undefined,
   }
   if (isEdit.value && props.siege) {
-    siegesStore.updateSiege(props.siege.id, payload)
+    await siegesStore.updateSiege(props.siege.id, payload)
   } else {
-    siegesStore.addSiege(payload)
+    await siegesStore.addSiege(payload)
   }
   close()
 })

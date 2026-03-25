@@ -32,19 +32,29 @@
     <div class="px-5 py-3 border-t border-base-200 text-xs text-base-content/40 space-y-0.5">
       <div>{{ playersStore.players.length }} игроков</div>
       <div>{{ siegesStore.siegeEvents.length }} осад</div>
+      <div class="pt-1">{{ authStore.email }}</div>
+      <button class="btn btn-xs btn-ghost w-full mt-1" @click="logout">Выйти</button>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { usePlayersStore } from '@/store/players'
 import { useSiegesStore } from '@/store/sieges'
+import { useAuthStore } from '@/store/auth'
 
 const playersStore = usePlayersStore()
 const siegesStore = useSiegesStore()
+const authStore = useAuthStore()
 
 const route = useRoute()
+const router = useRouter()
+
+function logout() {
+  authStore.logout()
+  router.push('/login')
+}
 
 const NAV = [
   { name: 'players', to: '/players', icon: '👥', label: 'Игроки' },
