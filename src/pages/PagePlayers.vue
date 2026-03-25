@@ -29,15 +29,23 @@
             <th class="w-10">#</th>
             <th>Игровая фамилия</th>
             <th>Discord</th>
-            <th>Класс</th>
-            <th>Роли</th>
-            <th>Рейд</th>
-            <th>Создан</th>
+            <th class="cursor-pointer select-none" data-testid="sort-class" @click="toggleSort('class')">
+              Класс <span class="ml-1 text-xs" :class="sortCol === 'class' ? 'opacity-100 text-primary' : 'opacity-30'">{{ sortArrow('class') }}</span>
+            </th>
+            <th class="cursor-pointer select-none" data-testid="sort-roles" @click="toggleSort('roles')">
+              Роли <span class="ml-1 text-xs" :class="sortCol === 'roles' ? 'opacity-100 text-primary' : 'opacity-30'">{{ sortArrow('roles') }}</span>
+            </th>
+            <th class="cursor-pointer select-none" data-testid="sort-raid" @click="toggleSort('raid')">
+              Рейд <span class="ml-1 text-xs" :class="sortCol === 'raid' ? 'opacity-100 text-primary' : 'opacity-30'">{{ sortArrow('raid') }}</span>
+            </th>
+            <th class="cursor-pointer select-none" data-testid="sort-joined" @click="toggleSort('joinedAt')">
+              Вступил <span class="ml-1 text-xs" :class="sortCol === 'joinedAt' ? 'opacity-100 text-primary' : 'opacity-30'">{{ sortArrow('joinedAt') }}</span>
+            </th>
             <th class="w-24"></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(player, idx) in playersStore.players" :key="player.id">
+          <tr v-for="(player, idx) in sortedPlayers" :key="player.id">
             <td class="text-base-content/30 text-sm">{{ idx + 1 }}</td>
             <td class="font-semibold">{{ player.gameSurname }}</td>
             <td class="text-base-content/60">{{ player.discordNick }}</td>
@@ -62,7 +70,7 @@
                 >{{ raid.name }}</span>
               </div>
             </td>
-            <td class="text-xs text-base-content/40">{{ fmtDate(player.createdAt) }}</td>
+            <td class="text-xs text-base-content/40">{{ fmtDate(player.joinedAt) }}</td>
             <td>
               <div class="flex gap-1 justify-end">
                 <button
@@ -104,13 +112,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePlayersStore } from '@/store/players'
 import { useSiegesStore } from '@/store/sieges'
 import { useRaidsStore } from '@/store/raids'
 import type { Player } from '@/types'
 import { roleBadgeClass } from '@/utils/roles'
 import PlayerModal from '@/components/players/PlayerModal.vue'
+
+type SortCol = 'class' | 'roles' | 'raid' | 'joinedAt'
+type SortDir = 'asc' | 'desc'
 
 const playersStore = usePlayersStore()
 const siegesStore  = useSiegesStore()
@@ -121,8 +132,42 @@ onMounted(() => {
   raidsStore.fetchRaids()
 })
 
-const modalRef   = ref<InstanceType<typeof PlayerModal>>()
-const deleteDialog = ref<HTMLDialogElement>()
+const sortCol = ref<SortCol>('joinedAt')
+const sortDir = ref<SortDir>('asc')
+
+function toggleSort(col: SortCol) {
+  if (sortCol.value === col) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortCol.value = col
+    sortDir.value = 'asc'
+  }
+}
+
+const sortedPlayers = computed(() => {
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  return [...playersStore.players].sort((a, b) => {
+    let av = ''
+    let bv = ''
+    if (sortCol.value === 'class') {
+      av = className(a.classId)
+      bv = className(b.classId)
+    } else if (sortCol.value === 'roles') {
+      av = playersStore.getPlayerRoles(a)[0] ?? ''
+      bv = playersStore.getPlayerRoles(b)[0] ?? ''
+    } else if (sortCol.value === 'raid') {
+      av = raidsStore.getPlayerRaids(a.id)[0]?.name ?? ''
+      bv = raidsStore.getPlayerRaids(b.id)[0]?.name ?? ''
+    } else {
+      av = a.joinedAt
+      bv = b.joinedAt
+    }
+    return av.localeCompare(bv, 'ru') * dir
+  })
+})
+
+const modalRef      = ref<InstanceType<typeof PlayerModal>>()
+const deleteDialog   = ref<HTMLDialogElement>()
 
 const editingPlayer  = ref<Player | undefined>()
 const deletingPlayer = ref<Player | undefined>()
@@ -149,6 +194,11 @@ async function confirmDelete() {
     deletingPlayer.value = undefined
   }
   deleteDialog.value?.close()
+}
+
+function sortArrow(col: SortCol): string {
+  if (sortCol.value !== col) return '▲'
+  return sortDir.value === 'asc' ? '▲' : '▼'
 }
 
 function className(classId: string): string {
