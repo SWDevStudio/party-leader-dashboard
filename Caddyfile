@@ -1,3 +1,0 @@
-bdo-pl-dashboard.com {
-    reverse_proxy app:3000
-}
